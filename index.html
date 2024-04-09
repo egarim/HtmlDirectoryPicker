@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directory File Reader</title>
+</head>
+<body>
+    <h1>Directory File Reader</h1>
+    <input type="file" id="directoryPicker" webkitdirectory multiple>
+    <button onclick="readFiles()">Read Files</button>
+    <h2>Files Read:</h2>
+    <ul id="fileList"></ul>
+
+    <script>
+        function readFiles() {
+            var input = document.getElementById('directoryPicker');
+            if (!input.files.length) {
+                alert('Please select a directory first.');
+                return;
+            }
+
+            const files = input.files;
+            const fileData = [];
+
+            function readFile(index) {
+                if (index >= files.length) {
+                    displayFiles(fileData);
+                    console.log('All files read:', fileData);
+                    return;
+                }
+
+                const file = files[index];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    fileData.push({
+                        name: file.name,
+                        content: new Uint8Array(e.target.result) // Converts content to byte array
+                    });
+                    readFile(index + 1); // Read next file
+                };
+
+                reader.onerror = function() {
+                    console.error('Error reading file', file.name);
+                    reader.abort();
+                    readFile(index + 1); // Continue with next file
+                };
+
+                reader.readAsArrayBuffer(file);
+            }
+
+            readFile(0); // Start reading from the first file
+        }
+
+        function displayFiles(fileData) {
+            const list = document.getElementById('fileList');
+            list.innerHTML = ''; // Clear existing entries
+            fileData.forEach(file => {
+                const item = document.createElement('li');
+                item.textContent = `File: ${file.name}, Bytes: ${file.content.length}`;
+                list.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
